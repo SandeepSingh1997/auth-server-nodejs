@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-//Create the route to register
+//Route to register
 app.post("/register", async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -55,6 +55,40 @@ app.post("/register", async (req, res) => {
     user.token = token;
 
     return res.status(201).json(JSON.stringify(user));
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+//Rout to User Login
+app.post("/login", async (req, res) => {
+  try {
+    //User credentials
+    const { email, password } = req.body;
+
+    if (!(email && password)) {
+      return res.status(400).send("Provide all credentials");
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user && (await bycrypt.compare(password, user.password))) {
+      //Give token to authentic user
+      const token = jwt.sign(
+        {
+          user_id: user._id,
+          email,
+        },
+        process.env.TOKEN_KEY,
+        { expiresIn: "1hr" }
+      );
+
+      user.token = token;
+
+      res.status(201).json(JSON.stringify(user));
+    } else {
+      return res.status(409).send("Invalid credentials");
+    }
   } catch (err) {
     console.log(err);
   }
