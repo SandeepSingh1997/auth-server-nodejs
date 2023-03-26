@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 require("./config/database.js").connect();
 
 const User = require("./model/user.js");
-const user = require("./model/user.js");
+const tokenVerification = require("./middleware/auth.js");
 
 const app = express();
 
@@ -60,7 +60,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-//Rout to User Login
+//Route to User Login
 app.post("/login", async (req, res) => {
   try {
     //User credentials
@@ -92,6 +92,12 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+//Route with added middleware for token verfication
+app.get("/welcome", tokenVerification, (req, res) => {
+  console.log(req.user);
+  return res.send("Welcome boy");
 });
 
 module.exports = app;
