@@ -1,11 +1,63 @@
 require("dotenv").config();
+const express = require("express");
+const bycrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-//connect to the configured mongoose db
+//Connect to the configured Mongoose db
 require("./config/database.js").connect();
 
-const express = require("express");
+const User = require("./model/user.js");
+const user = require("./model/user.js");
+
 const app = express();
 
 app.use(express.json());
+
+//Create the route to register
+app.post("/register", async (req, res) => {
+  try {
+    const { firstName, lastName, email, password } = req.body;
+
+    console.log(firstName, lastName, email, password);
+
+    //Check if no field is empty
+    if (!(firstName && lastName && email && password)) {
+      return res.status(400).send("Please fill all fields");
+    }
+
+    //Check if User already exists
+    const oldUser = await User.findOne({ email: email.toLowerCase() });
+    if (oldUser) {
+      return res.status(409).send("User already registered");
+    }
+
+    //Add new user
+    //Hash the password to save
+    const hashedPassword = await bycrypt.hash(password, 10);
+
+    const user = await User.create({
+      first_name: firstName,
+      last_name: lastName,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+    });
+
+    //Add the token
+    const token = jwt.sign(
+      {
+        user_id: user._id,
+        email,
+      },
+      process.env.TOKEN_KEY,
+      { expiresIn: "1hr" }
+    );
+
+    user.token = token;
+
+    return res.status(201).json(JSON.stringify(user));
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 module.exports = app;
