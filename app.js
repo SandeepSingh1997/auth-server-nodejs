@@ -13,6 +13,45 @@ const app = express();
 
 app.use(express.json());
 
+//Utility Functions (need to be moved to their own folder)
+const isNameValid = (name) => {
+  if (name && name.length < 30) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+const isEmailValid = (email) => {
+  const validAtTheRate = /^[^@]+@?[^@]*$/;
+  if (email && email.length < 40 && email.search(validAtTheRate) !== -1) {
+    return true;
+  } else {
+    console.log("email  error");
+    return false;
+  }
+};
+
+const isPasswordValid = (password) => {
+  const atLeastOnedigit = /\d+?/;
+  const atLeastOneCapCase = /[A-Z]+?/;
+  const atLeastOneSmallCase = /[a-z]+?/;
+  const atLeastOneSpecialChar = /[!@#$%^&*)(+=._-]+?/;
+  if (
+    password &&
+    password.length > 8 &&
+    password.search(atLeastOnedigit) !== -1 &&
+    password.search(atLeastOneCapCase) !== -1 &&
+    password.search(atLeastOneSmallCase) !== -1 &&
+    password.search(atLeastOneSpecialChar) !== -1
+  ) {
+    return true;
+  } else {
+    console.log(" password error");
+    return false;
+  }
+};
+
 //Route to register
 app.post("/register", async (req, res) => {
   try {
@@ -23,6 +62,15 @@ app.post("/register", async (req, res) => {
     //Check if no field is empty
     if (!(firstName && lastName && email && password)) {
       return res.status(400).send("Please fill all fields");
+    }
+
+    //Check validation for fields
+    if (!(isNameValid(firstName) && isNameValid(lastName))) {
+      return res.status(400).send("Bad Credentials");
+    }
+
+    if (!(isEmailValid(email) && isPasswordValid(password))) {
+      return res.status(400).send("Bad Credentials");
     }
 
     //Check if User already exists
