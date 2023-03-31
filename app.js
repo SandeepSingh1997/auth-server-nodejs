@@ -118,6 +118,12 @@ app.post("/login", async (req, res) => {
       return res.status(400).send("Provide all credentials");
     }
 
+    //Check if user credentials are valid
+    if (!(isEmailValid(email) && isPasswordValid(password))) {
+      return res.status(400).send("Please provide valid credentials");
+    }
+
+    //If the credentials are valid
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (user && (await bycrypt.compare(password, user.password))) {
