@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const bycrypt = require("bcryptjs");
+const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const {
   isNameValid,
@@ -17,6 +18,7 @@ const tokenVerification = require("./middleware/auth.js");
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
 //Route to register
 app.post("/register", async (req, res) => {
@@ -27,7 +29,7 @@ app.post("/register", async (req, res) => {
 
     //Check if no field is empty
     if (!(firstName && lastName && email && password)) {
-      return res.status(400).send("Please fill all fields");
+      return res.status(400).send("All fields not present");
     }
 
     //Check validation for fields
@@ -42,7 +44,7 @@ app.post("/register", async (req, res) => {
     //Check if User already exists
     const oldUser = await User.findOne({ email: email.toLowerCase() });
     if (oldUser) {
-      return res.status(409).send("User already registered");
+      return res.status(401).send("User already registered");
     }
 
     //Add new user
@@ -70,6 +72,7 @@ app.post("/register", async (req, res) => {
 
     return res.status(201).json(JSON.stringify(user));
   } catch (err) {
+    res.status(500).send("Internal Server Error");
     console.log(err);
   }
 });
@@ -107,10 +110,11 @@ app.post("/login", async (req, res) => {
 
       res.status(201).json(JSON.stringify(user));
     } else {
-      return res.status(409).send("Invalid credentials");
+      return res.status(401).send("Unauthorized");
     }
   } catch (err) {
     console.log(err);
+    res.status(500).send("Internal Server error");
   }
 });
 
