@@ -2,6 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const bycrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const {
+  isNameValid,
+  isEmailValid,
+  isPasswordValid,
+} = require("./utils/validation.js");
 
 //Connect to the configured Mongoose db
 require("./config/database.js").connect();
@@ -12,45 +17,6 @@ const tokenVerification = require("./middleware/auth.js");
 const app = express();
 
 app.use(express.json());
-
-//Utility Functions (need to be moved to their own folder)
-const isNameValid = (name) => {
-  if (name && name.length < 30) {
-    return true;
-  } else {
-    return false;
-  }
-};
-
-const isEmailValid = (email) => {
-  const validAtTheRate = /^[^@]+@?[^@]*$/;
-  if (email && email.length < 40 && email.search(validAtTheRate) !== -1) {
-    return true;
-  } else {
-    console.log("email  error");
-    return false;
-  }
-};
-
-const isPasswordValid = (password) => {
-  const atLeastOnedigit = /\d+?/;
-  const atLeastOneCapCase = /[A-Z]+?/;
-  const atLeastOneSmallCase = /[a-z]+?/;
-  const atLeastOneSpecialChar = /[!@#$%^&*)(+=._-]+?/;
-  if (
-    password &&
-    password.length > 8 &&
-    password.search(atLeastOnedigit) !== -1 &&
-    password.search(atLeastOneCapCase) !== -1 &&
-    password.search(atLeastOneSmallCase) !== -1 &&
-    password.search(atLeastOneSpecialChar) !== -1
-  ) {
-    return true;
-  } else {
-    console.log(" password error");
-    return false;
-  }
-};
 
 //Route to register
 app.post("/register", async (req, res) => {
